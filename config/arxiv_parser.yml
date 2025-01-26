@@ -1,0 +1,21 @@
+# config/myapp.yml
+
+# Common configurations using anchors
+common_config: &common
+  workdir: .
+  database: &database
+    embedding_dimensions: 768
+
+# Environment configurations
+dev:
+  <<: *common
+  database:
+    <<: *database
+    url: http://localhost:6333
+    collection: articles-dev
+
+prod:
+  <<: *common
+  database:
+    <<: *database
+    connection_string: foo
