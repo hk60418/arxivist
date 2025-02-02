@@ -26,7 +26,7 @@ class Article(BaseModel):
 
    Indexes:
    - arxiv_id (unique)
-   - categories (multikey)
+   - categories (multikey, not doable with Qdrant?)
    - published (for time-based queries)
    - processed_at (for time-based queries relative to user time)
 
