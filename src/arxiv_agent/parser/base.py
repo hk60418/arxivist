@@ -35,43 +35,35 @@ class ArxivBase(ABC):
         response.raise_for_status()
         return response
 
-    def list_daily_papers(self, date: datetime, category: str, max_results: int = 5) -> List[Dict[str, Any]]:
+    def list_daily_papers(self, date: datetime, category: str, max_results: int = 100) -> List[Dict[str, Any]]:
         """List all papers published on a specific date in a given category."""
         date_str = date.strftime('%Y%m%d')
-        base_query = f'cat:{category} AND submittedDate:[{date_str}0000 TO {date_str}2359]'
+        query_params = {
+            'search_query': f'cat:{category} AND submittedDate:[{date_str}0000 TO {date_str}2359]',
+            'max_results': max_results,
+            'sortBy': 'submittedDate',
+            'sortOrder': 'ascending'
+        }
 
-        all_results = []
-        start = 0
+        url = self.BASE_API_URL + "&".join(f"{k}={v}" for k, v in query_params.items())
+        response = self._make_request(url)
 
-        while True:
-            query_params = {
-                'search_query': base_query,
-                'max_results': max_results,
-                'start': start,
-                'sortBy': 'submittedDate',
-                'sortOrder': 'ascending'
+        root = ET.fromstring(response.content)
+        ns = {'atom': 'http://www.w3.org/2005/Atom'}
+
+        papers = []
+        for entry in root.findall('atom:entry', ns):
+            paper_info = {
+                'arxiv_id': entry.find('atom:id', ns).text.split('/')[-1],
+                'title': entry.find('atom:title', ns).text.strip(),
+                'authors': [author.find('atom:name', ns).text for author in entry.findall('atom:author', ns)],
+                'published': entry.find('atom:published', ns).text,
+                'abstract': entry.find('atom:summary', ns).text.strip(),
+                'categories': [cat.get('term') for cat in entry.findall('atom:category', ns)]
             }
+            papers.append(paper_info)
 
-            url = self.BASE_API_URL + "&".join(f"{k}={v}" for k, v in query_params.items())
-            response = self._make_request(url)
-
-            root = ET.fromstring(response.content)
-            ns = {'atom': 'http://www.w3.org/2005/Atom'}
-
-            # Get entries from current batch
-            entries = root.findall('atom:entry', ns)
-            if not entries:
-                break
-
-            all_results.extend(entries)  # Or however you process the entries
-
-            # If we got fewer results than max_results, we've reached the end
-            if len(entries) < max_results:
-                break
-
-            start += max_results
-
-        return all_results
+        return papers
 
     @abstractmethod
     def extract_text(self, arxiv_id: str) -> Dict[str, Any]:
