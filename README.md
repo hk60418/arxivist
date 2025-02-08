@@ -56,3 +56,9 @@ papers = parser.get_daily_papers(datetime.now() - timedelta(days=1), 'cs.AI')
 
 \# Download and save papers\
 parser.save_papers(papers, 'output_directory')
+
+## Tests
+Run tests in directory root with:
+``` bash
+pytest
+```

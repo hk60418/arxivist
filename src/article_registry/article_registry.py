@@ -10,11 +10,10 @@ class ArticleRegistry:
             root_dir = ConfigurationLoader().get_config()['articles']['download_location']
         self.root = Path(root_dir)
         self.by_id_dir = self.root / "by_id"
+        self.by_category_dir = self.root / "by_category"
 
         # Fixed filenames
         self._article_filename = "article.json"
-        self._embedding_filename = "embedding.json"
-        self._context_embedding_filename = "context_embedding.json"
 
     def get_article_dir(self, arxiv_id: str) -> Path:
         """Get article directory using symlink lookup (fast)"""
@@ -43,6 +42,17 @@ class ArticleRegistry:
             rel_path = os.path.relpath(article_dir, symlink_path.parent)
             symlink_path.symlink_to(rel_path)
 
+        # Create category-based symlinks
+        self.by_category_dir.mkdir(exist_ok=True)
+        for category in article.categories:
+            category_dir = self.by_category_dir / category
+            category_dir.mkdir(exist_ok=True)
+
+            category_symlink_path = category_dir / article.arxiv_id
+            if not category_symlink_path.exists():
+                rel_path = os.path.relpath(article_dir, category_symlink_path.parent)
+                category_symlink_path.symlink_to(rel_path)
+
         return article_dir
 
     def get_paths(self, arxiv_id: str) -> dict[str, Path]:
@@ -53,12 +63,14 @@ class ArticleRegistry:
 
         return {
             "dir": article_dir,
-            "article": article_dir / self._article_filename,
-            "embedding": article_dir / self._embedding_filename,
-            "context_embedding": article_dir / self._context_embedding_filename
+            "article": article_dir / self._article_filename
         }
 
-    def list_articles(self, year=None, month=None, day=None) -> list[str]:
+    def list_articles(self,
+                      year: int = None,
+                      month: int = None,
+                      day: int = None,
+                      category: str = None) -> list[str]:
         """List arxiv IDs under specified directory level"""
         path = self.root
 
@@ -73,20 +85,31 @@ class ArticleRegistry:
         if not path.exists():
             return []
 
-        # Get all arxiv ID directories at this level
-        arxiv_ids = []
+            # Get all arxiv ID directories at this level
+        arxiv_ids = set()
         for root, dirs, _ in os.walk(path):
             # Only include directories that look like arxiv IDs
             arxiv_dirs = [d for d in dirs if self._is_arxiv_id(d)]
-            arxiv_ids.extend(arxiv_dirs)
+            arxiv_ids.update(arxiv_dirs)
 
-        return arxiv_ids
+        # If category filter is specified, intersect with category-specific articles
+        if category:
+            category_path = self.by_category_dir / category
+            if not category_path.exists():
+                return []
 
-    def _is_arxiv_id(self, dirname: str) -> bool:
+            category_ids = set(path.name for path in category_path.iterdir()
+                               if path.is_symlink() and self._is_arxiv_id(path.name))
+            arxiv_ids = arxiv_ids.intersection(category_ids)
+
+        return list(arxiv_ids)
+
+    @staticmethod
+    def _is_arxiv_id(dirname: str) -> bool:
         """Basic check if directory name looks like an arxiv ID"""
         # This is a very basic check against possible year/month/day dirnames while being suspicious about if the
         # definition in https://info.arxiv.org/help/arxiv_identifier.html#new holds true
-        return len(dirname) > 4
+        return len(dirname) > 4 and any(c.isdigit() for c in dirname)
 
 
 # Example usage:
