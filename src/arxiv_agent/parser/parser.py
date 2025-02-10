@@ -1,6 +1,7 @@
 # parser.py
 import os
 import json
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, Any, Optional
@@ -78,14 +79,9 @@ class ArxivParser:
 
                 # Store processed_at
                 paper_data['processed_at'] = datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z')
+                paper_data['published'] = paper_data['published'].isoformat(timespec='seconds').replace('+00:00', 'Z')
 
-                # Create sanitized filename
-                safe_title = "".join(c for c in paper['title'] if c.isalnum() or c in (' ', '-', '_')).rstrip()
-                safe_title = safe_title.replace(' ', '_')
-                filename = f"{safe_title}.json"
-
-                # Create directory if needed
-                os.makedirs(output_dir, exist_ok=True)
+                filename = "article.json"
                 output_path = os.path.join(output_dir, filename)
 
                 # Save as JSON
@@ -94,8 +90,8 @@ class ArxivParser:
                 logger.info(f"Successfully saved: {filename}")
 
             except Exception as e:
+                traceback.print_exc()
                 logger.error(f"Error processing {paper['title']}: {str(e)}")
-
 
 def main():
     """Example usage of the ArxivParser."""

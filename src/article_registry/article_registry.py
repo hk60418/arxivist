@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from datetime import datetime
 from src.arxiv_agent.models.articles import Article
 from src.config.config_loader import ConfigurationLoader
 
@@ -49,6 +50,72 @@ class ArticleRegistry:
             category_dir.mkdir(exist_ok=True)
 
             category_symlink_path = category_dir / article.arxiv_id
+            if not category_symlink_path.exists():
+                rel_path = os.path.relpath(article_dir, category_symlink_path.parent)
+                category_symlink_path.symlink_to(rel_path)
+
+        return article_dir
+
+    def create_article_dir_from_dict(self, article_dict: dict) -> Path:
+        """Create article directory structure and symlink based on article dictionary data
+
+        Args:
+            article_dict (dict): Dictionary containing article information with keys:
+                - arxiv_id (str): ArXiv ID of the article
+                - published (datetime): Publication date
+                - categories (list[str]): List of article categories
+
+        Returns:
+            Path: Path to the created article directory
+
+        Raises:
+            KeyError: If required keys are missing from the dictionary
+            TypeError: If values are of incorrect type
+            ValueError: If date values are invalid
+        """
+        # Validate required fields
+        required_fields = ['arxiv_id', 'published', 'categories']
+        missing_fields = [field for field in required_fields if field not in article_dict]
+        if missing_fields:
+            raise KeyError(f"Missing required fields: {', '.join(missing_fields)}")
+
+        # Type checking
+        if not isinstance(article_dict['arxiv_id'], str):
+            raise TypeError("arxiv_id must be a string")
+        if isinstance(article_dict['published'], str):
+            try:
+                article_dict['published'] = datetime.fromisoformat(article_dict['published'])
+            except ValueError as e:
+                raise ValueError("published date string must be in ISO format") from e
+        if not isinstance(article_dict['categories'], list):
+            raise TypeError("categories must be a list")
+
+        # Extract date components from article's published date
+        published_date = article_dict['published']
+        year = str(published_date.year)
+        month = f"{published_date.month:02d}"
+        day = f"{published_date.day:02d}"
+
+        # Create directory structure
+        article_dir = self.root / year / month / day / article_dict['arxiv_id']
+        article_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create symlink
+        symlink_path = self.by_id_dir / article_dict['arxiv_id']
+        self.by_id_dir.mkdir(exist_ok=True)
+
+        # Create relative symlink
+        if not symlink_path.exists():
+            rel_path = os.path.relpath(article_dir, symlink_path.parent)
+            symlink_path.symlink_to(rel_path)
+
+        # Create category-based symlinks
+        self.by_category_dir.mkdir(exist_ok=True)
+        for category in article_dict['categories']:
+            category_dir = self.by_category_dir / category
+            category_dir.mkdir(exist_ok=True)
+
+            category_symlink_path = category_dir / article_dict['arxiv_id']
             if not category_symlink_path.exists():
                 rel_path = os.path.relpath(article_dir, category_symlink_path.parent)
                 category_symlink_path.symlink_to(rel_path)

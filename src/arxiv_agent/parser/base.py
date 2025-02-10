@@ -35,35 +35,71 @@ class ArxivBase(ABC):
         response.raise_for_status()
         return response
 
-    def list_daily_papers(self, date: datetime, category: str, max_results: int = 100) -> List[Dict[str, Any]]:
-        """List all papers published on a specific date in a given category."""
+    def list_daily_papers(self, date: datetime, category: str) -> List[Dict[str, Any]]:
+        """List all papers published on a specific date in a given category.
+
+        Args:
+            date (datetime): The date to search for papers
+            category (str): The ArXiv category to search in
+
+        Returns:
+            List[Dict[str, Any]]: List of paper information dictionaries
+
+        Raises:
+            requests.exceptions.RequestException: If there's an error with the API request
+            xml.etree.ElementTree.ParseError: If the response XML cannot be parsed
+        """
+        RESULTS_PER_REQUEST = 1000  # ArXiv's maximum allowed results per request
         date_str = date.strftime('%Y%m%d')
-        query_params = {
-            'search_query': f'cat:{category} AND submittedDate:[{date_str}0000 TO {date_str}2359]',
-            'max_results': max_results,
-            'sortBy': 'submittedDate',
-            'sortOrder': 'ascending'
-        }
+        base_query = f'cat:{category} AND submittedDate:[{date_str}0000 TO {date_str}2359]'
 
-        url = self.BASE_API_URL + "&".join(f"{k}={v}" for k, v in query_params.items())
-        response = self._make_request(url)
+        start = 0
+        all_papers = []
+        total_results = None
 
-        root = ET.fromstring(response.content)
-        ns = {'atom': 'http://www.w3.org/2005/Atom'}
-
-        papers = []
-        for entry in root.findall('atom:entry', ns):
-            paper_info = {
-                'arxiv_id': entry.find('atom:id', ns).text.split('/')[-1],
-                'title': entry.find('atom:title', ns).text.strip(),
-                'authors': [author.find('atom:name', ns).text for author in entry.findall('atom:author', ns)],
-                'published': entry.find('atom:published', ns).text,
-                'abstract': entry.find('atom:summary', ns).text.strip(),
-                'categories': [cat.get('term') for cat in entry.findall('atom:category', ns)]
+        while True:
+            query_params = {
+                'search_query': base_query,
+                'max_results': RESULTS_PER_REQUEST,
+                'start': start,
+                'sortBy': 'submittedDate',
+                'sortOrder': 'ascending'
             }
-            papers.append(paper_info)
 
-        return papers
+            url = self.BASE_API_URL + "&".join(f"{k}={v}" for k, v in query_params.items())
+            response = self._make_request(url)
+
+            root = ET.fromstring(response.content)
+            ns = {'atom': 'http://www.w3.org/2005/Atom',
+                  'opensearch': 'http://a9.com/-/spec/opensearch/1.1/'}
+
+            # Get total results count from opensearch namespace
+            if total_results is None:
+                total_results_elem = root.find('opensearch:totalResults', ns)
+                total_results = int(total_results_elem.text) if total_results_elem is not None else 0
+                logger.info(f"Total papers found for {date_str} in category {category}: {total_results}")
+
+            # Parse entries
+            for entry in root.findall('atom:entry', ns):
+                paper_info = {
+                    'arxiv_id': entry.find('atom:id', ns).text.split('/')[-1],
+                    'title': entry.find('atom:title', ns).text.strip(),
+                    'authors': [author.find('atom:name', ns).text for author in entry.findall('atom:author', ns)],
+                    'published': entry.find('atom:published', ns).text,
+                    'abstract': entry.find('atom:summary', ns).text.strip(),
+                    'categories': [cat.get('term') for cat in entry.findall('atom:category', ns)]
+                }
+                all_papers.append(paper_info)
+
+            # Check if we've got all results
+            if len(all_papers) >= total_results:
+                break
+
+            start += RESULTS_PER_REQUEST
+            logger.info(f"Fetched {len(all_papers)} papers so far, continuing pagination...")
+
+        logger.info(f"Successfully retrieved {len(all_papers)} papers")
+        return all_papers
 
     @abstractmethod
     def extract_text(self, arxiv_id: str) -> Dict[str, Any]:
