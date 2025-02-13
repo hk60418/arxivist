@@ -1,6 +1,7 @@
 # Script to process papers published since given date
 import json
 import os.path
+import sys
 from datetime import datetime, timedelta, timezone
 from src.article_registry import ArticleRegistry
 from src.config.config_loader import ConfigurationLoader
@@ -10,7 +11,7 @@ from src.arxiv_agent.parser.parser import ArxivParser
 from src.database.database_client_qdrant import DatabaseClientQdrant as DatabaseClient
 
 
-def parse_articles_from_date(date_and_time: datetime = None):
+def import_articles_since_date(date_and_time: datetime = None):
     conf = ConfigurationLoader().get_config()
     parser = ArxivParser()
     article_registry = ArticleRegistry()
@@ -54,5 +55,12 @@ def parse_articles_from_date(date_and_time: datetime = None):
             date_and_time = date_and_time + timedelta(days=1)
 
 if __name__ == '__main__':
-    start = datetime.now(timezone.utc) - timedelta(days=364)
-    parse_articles_from_date(start)
+    if len(sys.argv) < 2:
+        print("Usage: python import_articles_from_date.py YYYY-MM-DD")
+        sys.exit(1)
+    try:
+        start = datetime.strptime(sys.argv[1], "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        print("Invalid date format. Use YYYY-MM-DD.")
+        sys.exit(1)
+    import_articles_since_date(start)

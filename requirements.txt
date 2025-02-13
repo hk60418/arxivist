@@ -6,3 +6,4 @@ sentence-transformers
 pydantic
 beautifulsoup4
 pytest
+streamlit
