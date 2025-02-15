@@ -1,6 +1,8 @@
+import datetime
 import uuid
 from qdrant_client import QdrantClient, models
-from qdrant_client.http.models import Distance, VectorParams, PayloadSchemaType, PointStruct
+from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http.models import Distance, VectorParams, PayloadSchemaType, PointStruct, OrderBy, Direction
 from src.arxiv_agent.models.articles import Article
 from src.database.database_client import DatabaseClient, SearchResult
 from src.config.config_loader import ConfigurationLoader
@@ -134,6 +136,27 @@ class DatabaseClientQdrant(DatabaseClient):
         )[0]
 
         return [Article(**point.payload) for point in results]
+
+    def get_latest_import_date(self):
+        try:
+            result = self._client.scroll(
+                collection_name=self.conf['database']['collection'],
+                limit=1,
+                with_payload=True,
+                order_by=OrderBy(key='published', direction=Direction.DESC)
+            )
+
+            if result:
+                date = Article(**result[0][0].payload).published
+                date = datetime.datetime(year=date.year, month=date.month, day=date.day)
+                return date.replace(tzinfo=datetime.timezone.utc)
+            else:
+                return None
+        except UnexpectedResponse as e:
+            if str(e) == 'Unexpected Response: 404 (Not Found)':
+                return None
+            else:
+                raise e
 
     def delete_collection(self) -> None:
         """Delete the current collection if it exists."""

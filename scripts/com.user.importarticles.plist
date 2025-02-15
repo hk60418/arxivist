@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist>
+    <dict>
+        <key>Label</key>
+        <string>com.user.importarticles</string>
+
+        <key>UserName</key>
+        <string>henrikynsilehto</string>
+
+        <key>StartCalendarInterval</key>
+        <dict>
+            <key>Hour</key>
+            <integer>11</integer>
+            <key>Minute</key>
+            <integer>00</integer>
+        </dict>
+
+        <!-- Path to your Python script -->
+        <key>ProgramArguments</key>
+        <array>
+            <string>/Users/henrikynsilehto/Desktop/arxiv_agent/.venv/bin/python</string>
+            <string>/Users/henrikynsilehto/Desktop/arxiv_agent/scripts/import_articles_since_date.py</string>
+        </array>
+
+        <!-- Set the working directory inside the repository root -->
+        <key>WorkingDirectory</key>
+        <string>/Users/henrikynsilehto/Desktop/arxiv_agent</string>
+
+        <!-- Environment variables -->
+        <key>EnvironmentVariables</key>
+        <dict>
+            <key>APP_NAME</key>
+            <string>arxiv_parser</string>
+            <key>ENV</key>
+            <string>dev</string>
+        </dict>
+
+        <key>StandardOutPath</key>
+        <string>/Users/henrikynsilehto/Desktop/arxiv_agent/output.log</string>
+
+        <key>StandardErrorPath</key>
+        <string>/Users/henrikynsilehto/Desktop/arxiv_agent/error.log</string>
+    </dict>
+</plist>

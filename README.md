@@ -43,19 +43,32 @@ You can use whatever you choose but then you must adapt configuration to that.
 - run the container with your deployment
 - set the environment
 
-### Arxiv_agent usage
+### ArXivist usage
 
-\# imports\
-from arxiv_parser import ArxivParser\
-from datetime import datetime, timedelta
+#### Getting articles
 
-parser = ArxivParser()
+Before starting user activities with the ArXivist you need to get some articles. Set up the DB collection name, categories that you
+are interested in, and local file system directory for the article registry. These can be set in the configuration file
+config/<APP_NAME>.yml.
 
-\# Get papers from a specific date and category\
-papers = parser.get_daily_papers(datetime.now() - timedelta(days=1), 'cs.AI')
+After setting these up it makes sense to do a batch import, importing all the articles in the chosen categories that has
+been published since chosen date. You can do this with scripts/import_articles_since_date.py:
 
-\# Download and save papers\
-parser.save_papers(papers, 'output_directory')
+```bash
+# usage format:
+python scripts/import_articles_since_date.py <YYYY-MM-DD>
+
+# example:
+python scripts/import_articles_since_date.py 2023-12-01
+```
+
+After the initial import you can set the script to run daily without arguments. With this usage it will check the 
+database for the last date that was imported and import all the articles published after that date. I am on Mac and I 
+have plist script/com.user.importarticles.plist for setting up the job via launchctl:
+```bash
+sudo cp scripts/com.user.importarticles.plist /Library/LaunchDaemons
+sudo sudo launchctl bootstrap system /Library/LaunchDaemons/com.user.importarticles.plist
+```
 
 ## Tests
 Run tests in directory root with:
