@@ -53,8 +53,8 @@ def import_articles_since_date(date_and_time: Optional[datetime] = None):
                     print(f"Failed to process {article_dict['arxiv_id']}. Exception: {str(e)}")
                     continue
 
-            date_and_time = date_and_time + timedelta(days=1)
             print(f"Processing {str(date_and_time)} finished.")
+            date_and_time = date_and_time + timedelta(days=1)
         except Exception as e:
             print(f"Failed process batch {str(date_and_time)}. Exception: {str(e)}")
             date_and_time = date_and_time + timedelta(days=1)
