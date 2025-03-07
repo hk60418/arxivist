@@ -1,4 +1,4 @@
-# ArXiv Agent
+# ArXivist
 Local agent for staying up to date with research published in ArXiv.
 
 ## Installation and setup
