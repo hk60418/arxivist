@@ -17,16 +17,7 @@ class EmbeddingSentenceTransformer(EmbeddingModel):
         self.model = SentenceTransformer(model_name)
 
     def encode(self, text: str) -> List[float]:
-        """
-        Encode a single text using SentenceTransformer. Will warn if attempting to encode multiple texts.
-        For multiple texts, use encode_batch() instead.
-
-        Args:
-            text: Single text string to encode.
-
-        Returns:
-            For single text: List[float] representing the embedding
-        """
+        """See parent class."""
         if not isinstance(text, str):
             warnings.warn(
                 "encode() was called with a list of texts or some other input. For multiple texts, use "
@@ -46,16 +37,7 @@ class EmbeddingSentenceTransformer(EmbeddingModel):
         return embeddings[0]
 
     def encode_batch(self, texts: List[str], batch_size: int = 32) -> List[List[float]]:
-        """
-        Encode a large batch of texts efficiently.
-
-        Args:
-            texts: List of text strings to encode
-            batch_size: Size of batches to process at once
-
-        Returns:
-            List of embedding vectors
-        """
+        """See parent class."""
         all_embeddings = []
 
         # Process in batches

@@ -1,3 +1,23 @@
+"""
+This module implements article registry that keeps the articles and metadata on local filesystem. The feature supports
+article retrieval by date, by category, and by article id. This is achieved by symlinking the individual article
+directories by year/month/date, by category, and by article id. The directory and link structure is the following:
+article_registry_root/
+│- by_category
+│   │- category1
+│       │- article1
+│       │- article2
+│- by_id
+│   │- article1
+│   │- article2
+│- year
+│   │- month
+│       │- day
+│           │- article1
+│           │- article2
+
+The article registry can be expected to work on Linux/MacOs
+"""
 from pathlib import Path
 import os
 from datetime import datetime
@@ -7,6 +27,7 @@ from src.config.config_loader import ConfigurationLoader
 
 class ArticleRegistry:
     def __init__(self, root_dir: str | Path = None):
+        """Initialise the instance with article registry root dir."""
         if not root_dir:
             root_dir = ConfigurationLoader().get_config()['articles']['download_location']
         self.root = Path(root_dir)
@@ -17,14 +38,15 @@ class ArticleRegistry:
         self._article_filename = "article.json"
 
     def get_article_dir(self, arxiv_id: str) -> Path:
-        """Get article directory using symlink lookup (fast)"""
+        """Get article directory using symlink lookup."""
         symlink_path = self.by_id_dir / arxiv_id
         if symlink_path.exists():
             return symlink_path.resolve()
         return None
 
     def create_article_dir(self, article: Article) -> Path:
-        """Create article directory structure and symlink based on article's published date"""
+        """Create article directory structure and symlink from Article object based on article's published date and
+        categories."""
         # Extract date components from article's published date
         year = str(article.published.year)
         month = f"{article.published.month:02d}"
@@ -57,7 +79,7 @@ class ArticleRegistry:
         return article_dir
 
     def create_article_dir_from_dict(self, article_dict: dict) -> Path:
-        """Create article directory structure and symlink based on article dictionary data
+        """Create article directory structure and symlink from dictionary based on article publish date and categories.
 
         Args:
             article_dict (dict): Dictionary containing article information with keys:
@@ -123,7 +145,7 @@ class ArticleRegistry:
         return article_dir
 
     def get_paths(self, arxiv_id: str) -> dict[str, Path]:
-        """Get all paths related to an article"""
+        """Get all file paths related to an article"""
         article_dir = self.get_article_dir(arxiv_id)
         if not article_dir:
             return None
@@ -138,7 +160,7 @@ class ArticleRegistry:
                       month: int = None,
                       day: int = None,
                       category: str = None) -> list[str]:
-        """List arxiv IDs under specified directory level"""
+        """List arxiv IDs, optionally constrained by publish time and category selection."""
         path = self.root
 
         # Build path based on provided hierarchy
@@ -173,7 +195,7 @@ class ArticleRegistry:
 
     @staticmethod
     def _is_arxiv_id(dirname: str) -> bool:
-        """Basic check if directory name looks like an arxiv ID"""
+        """Basic check if directory name looks like an arxiv ID."""
         # This is a very basic check against possible year/month/day dirnames while being suspicious about if the
         # definition in https://info.arxiv.org/help/arxiv_identifier.html#new holds true
         return len(dirname) > 4 and any(c.isdigit() for c in dirname)
@@ -205,5 +227,4 @@ if __name__ == "__main__":
     # Get all paths for the paper
     paths = registry.get_paths(article.arxiv_id)
     if paths:
-        print(f"Article PDF path: {paths['article']}")
-        print(f"Embedding path: {paths['embedding']}")
+        print(f"Article path: {paths['article']}")

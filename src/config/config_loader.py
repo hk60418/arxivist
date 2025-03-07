@@ -1,4 +1,6 @@
-# src/config/loader.py
+"""
+Simple configuration loader for loading configuration from yaml files.
+"""
 import os
 import yaml
 from typing import Dict

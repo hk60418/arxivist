@@ -1,3 +1,6 @@
+"""
+This module defines interface for embedding models.
+"""
 from abc import ABC, abstractmethod
 from typing import List, Union
 

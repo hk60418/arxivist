@@ -1,3 +1,6 @@
+"""
+Qdrant implementation for the database/vector store.
+"""
 import datetime
 import uuid
 from qdrant_client import QdrantClient, models
@@ -68,16 +71,7 @@ class DatabaseClientQdrant(DatabaseClient):
             articles: Union[Article, Sequence[Article]],
             embeddings: Union[List[float], Sequence[List[float]]]
     ) -> None:
-        """
-        Insert one or more articles with their embeddings into Qdrant.
-
-        Args:
-            articles: Single Article or sequence of Articles
-            embeddings: Single embedding vector or sequence of embedding vectors
-
-        Raises:
-            ValueError: If lengths of articles and embeddings don't match or if embeddings are empty
-        """
+        """See parent class."""
         # Convert single inputs to lists
         if isinstance(articles, Article):
             articles = [articles]
@@ -106,6 +100,7 @@ class DatabaseClientQdrant(DatabaseClient):
         )
 
     def search(self, query_vector: List[float], limit: int = 10) -> List[SearchResult]:
+        """See parent class."""
         results = self._client.query_points(
             collection_name=self.conf['database']['collection'],
             query=query_vector,
@@ -116,6 +111,7 @@ class DatabaseClientQdrant(DatabaseClient):
         return [SearchResult(article=Article(**hit.payload), score=hit.score) for hit in results]
 
     def get_by_id(self, arxiv_id: str) -> Article:
+        """See parent class."""
         results = self._client.scroll(
             collection_name=self.conf['database']['collection'],
             scroll_filter=models.Filter(
@@ -128,6 +124,7 @@ class DatabaseClientQdrant(DatabaseClient):
         return Article(**results[0].payload) if results else None
 
     def scroll(self, limit: int = 10) -> List[Article]:
+        """See parent class."""
         results = self._client.scroll(
             collection_name=self.conf['database']['collection'],
             limit=limit,
@@ -138,6 +135,7 @@ class DatabaseClientQdrant(DatabaseClient):
         return [Article(**point.payload) for point in results]
 
     def get_latest_import_date(self):
+        """Get last import date. This should be defined in the parent class. FIXME"""
         try:
             result = self._client.scroll(
                 collection_name=self.conf['database']['collection'],
@@ -159,7 +157,7 @@ class DatabaseClientQdrant(DatabaseClient):
                 raise e
 
     def delete_collection(self) -> None:
-        """Delete the current collection if it exists."""
+        """Delete the current collection if it exists. This should be in the parent class. FIXME"""
         if self._client.collection_exists(self.conf['database']['collection']):
             self._client.delete_collection(
                 collection_name=self.conf['database']['collection']

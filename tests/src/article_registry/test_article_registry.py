@@ -1,3 +1,6 @@
+"""
+Module for article registry tests.
+"""
 import pytest
 from datetime import datetime, timezone
 from pathlib import Path

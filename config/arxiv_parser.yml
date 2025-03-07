@@ -17,9 +17,3 @@ dev:
     download_location: .articles
     categories:
       - cs.AI
-
-prod:
-  <<: *common
-  database:
-    <<: *database
-    connection_string: foo

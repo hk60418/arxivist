@@ -1,3 +1,6 @@
+"""
+Module for abstract baseclass database/vector store functionalities.
+"""
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List, Optional
@@ -6,6 +9,7 @@ from src.arxiv_agent.models.articles import Article
 
 @dataclass(frozen=True)
 class SearchResult:
+    """Search result and magic method implementations for list result ordering funtionality."""
     article: Article
     score: float
 
