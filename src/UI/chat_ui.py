@@ -1,19 +1,18 @@
-"""TODO after agent framework."""
 import streamlit as st
 import time
 
 
 def chat_ui(generate_response):
     """
-    Chat UI for a local AI model using Streamlit.
+    Chat UI for ArXivist.
 
     Args:
         generate_response (function): A function that takes a user query and returns a response.
     """
 
-    st.set_page_config(page_title="Local AI Chat", layout="wide")
-    st.title("💬 Local AI Chat")
-    st.caption("Running completely on your machine.")
+    st.set_page_config(page_title="The ArXivist", layout="wide")
+    st.title("The ArXivist")
+    st.caption("Local agent for keeping up with ArXivist.")
 
     # Initialize chat history
     if "messages" not in st.session_state:

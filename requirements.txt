@@ -2,8 +2,10 @@ qdrant_client
 PyYAML
 requests
 qdrant-client
-sentence-transformers
 pydantic
 beautifulsoup4
 pytest
 streamlit
+mlx-lm
+ollama
+-e file:/Users/henrikynsilehto/Desktop/agent_framework

@@ -76,6 +76,13 @@ sudo cp scripts/com.user.importarticles.plist /Library/LaunchDaemons
 sudo sudo launchctl bootstrap system /Library/LaunchDaemons/com.user.importarticles.plist
 ```
 
+#### Running the UI
+
+When you have some articles you can start trying out ArXivist. Run the ui with:
+```bash
+streamlit run src/UI/app.py
+```
+
 ## Tests
 Run tests in directory root with:
 ``` bash
