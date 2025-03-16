@@ -1,6 +1,11 @@
+import logging
 import streamlit as st
 import time
 
+
+logging.basicConfig(format="%(name)s - %(levelname)s - %(message)s")
+logging.getLogger("agent_framework").setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 
 def chat_ui(generate_response):
     """
