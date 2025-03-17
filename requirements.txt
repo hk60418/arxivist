@@ -9,3 +9,4 @@ streamlit
 mlx-lm
 ollama
 -e file:/Users/henrikynsilehto/Desktop/agent_framework
+sentence_transformers

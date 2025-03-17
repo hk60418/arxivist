@@ -9,6 +9,7 @@ from qdrant_client.http.models import Distance, VectorParams, PayloadSchemaType,
 from src.arxiv_agent.models.articles import Article
 from src.database.database_client import DatabaseClient, SearchResult
 from src.config.config_loader import ConfigurationLoader
+from src.arxiv_agent.ml.embedding_model_sentence_transformer import EmbeddingSentenceTransformer as EmbeddingModel
 from typing import List, Union, Sequence
 
 
@@ -28,6 +29,7 @@ class DatabaseClientQdrant(DatabaseClient):
             self.conf = conf
             self._client = QdrantClient(url=conf['database']['url'])
             self._ensure_collection()
+            self._embedding_model = EmbeddingModel()
 
     def _ensure_collection(self):
         if not self._client.collection_exists(self.conf['database']['collection']):
@@ -99,7 +101,7 @@ class DatabaseClientQdrant(DatabaseClient):
             points=points
         )
 
-    def search(self, query_vector: List[float], limit: int = 10) -> List[SearchResult]:
+    def vector_search(self, query_vector: List[float], limit: int = 10) -> List[SearchResult]:
         """See parent class."""
         results = self._client.query_points(
             collection_name=self.conf['database']['collection'],
@@ -109,6 +111,10 @@ class DatabaseClientQdrant(DatabaseClient):
         ).points
 
         return [SearchResult(article=Article(**hit.payload), score=hit.score) for hit in results]
+
+    def text_search(self, query: str, limit: int = 3) -> List[SearchResult]:
+        embedding = self._embedding_model.encode(query)
+        return self.vector_search(query_vector=embedding, limit=limit)
 
     def get_by_id(self, arxiv_id: str) -> Article:
         """See parent class."""
@@ -134,8 +140,8 @@ class DatabaseClientQdrant(DatabaseClient):
 
         return [Article(**point.payload) for point in results]
 
-    def get_latest_import_date(self):
-        """Get last import date. This should be defined in the parent class. FIXME"""
+    def get_latest_import_date(self) -> datetime.datetime:
+        """Get last import date. This should be defined in the parent class."""
         try:
             result = self._client.scroll(
                 collection_name=self.conf['database']['collection'],
