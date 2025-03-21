@@ -1,0 +1,12 @@
+qdrant_client
+PyYAML
+requests
+qdrant-client
+pydantic
+beautifulsoup4
+pytest
+streamlit
+transformers
+ollama
+-e file:/Users/henrikynsilehto/Desktop/agent_framework
+sentence_transformers

@@ -1,6 +1,5 @@
 import logging
 import random
-from mlx_lm import load
 from agent_framework import AgentFramework
 from src.arxiv_agent.ml.embedding_model_sentence_transformer import EmbeddingSentenceTransformer as Embedding
 from src.database.database_client_qdrant import DatabaseClientQdrant as DatabaseClient
@@ -25,7 +24,35 @@ embedding_model = Embedding()
 database_client = DatabaseClient.get_instance()
 
 # Tool model
-tool_model, tool_tokenizer = load('/Users/henrikynsilehto/models/mlx_watt-tool-8B')
+# Ollama
+if False:
+    main_model = "deepseek-r1:70b"
+    main_tokenizer = None
+    tool_model ="llama3.2:3b"
+    tool_tokenizer = None
+    pipe = None
+    toolpipe = None
+
+
+# MLX_LM
+if False:
+    from mlx_lm import load
+    main_model, main_tokenizer = load('/Users/henrikynsilehto/models/mlx_watt-tool-8B')
+    tool_model, tool_tokenizer = load('/Users/henrikynsilehto/models/mlx_watt-tool-8B')
+    pipe = None
+    toolpipe = None
+
+# Transformers
+if True:
+    from transformers import pipeline
+    toolpipe = pipeline("text-generation", model="/Users/henrikynsilehto/models/Llama-3-Groq-8B-Tool-Use")
+    pipe = pipeline("text-generation", model="/Users/henrikynsilehto/models/Llama-3-Groq-8B-Tool-Use")
+    main_model = None
+    tool_model = None
+    main_tokenizer = None
+    tool_tokenizer = None
+
+
 
 # Tools
 tools = [
@@ -33,8 +60,13 @@ tools = [
     weather_forecast
 ]
 
-print(f'DOC: {tools[0].__doc__}')
-
-agent = AgentFramework(llm=tool_model, tokenizer=tool_tokenizer, tool_llm=tool_model, tool_tokenizer=tool_tokenizer, tools=tools)
+agent = AgentFramework(
+    llm=main_model,
+    tokenizer=main_tokenizer,
+    tool_llm=tool_model,
+    tool_tokenizer=tool_tokenizer,
+    tool_pipeline=toolpipe,
+    pipeline=pipe,
+    tools=tools)
 
 query_handler = agent.invoke

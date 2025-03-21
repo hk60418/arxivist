@@ -17,7 +17,7 @@ def chat_ui(generate_response):
 
     st.set_page_config(page_title="The ArXivist", layout="wide")
     st.title("The ArXivist")
-    st.caption("Local agent for keeping up with ArXivist.")
+    st.caption("Local agent for keeping up with ArXiv.")
 
     # Initialize chat history
     if "messages" not in st.session_state:

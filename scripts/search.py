@@ -8,7 +8,7 @@ def search_papers(query):
     db_client = Client.get_instance()
     embedding_model = EmbeddingModel()
     query_embedding = embedding_model.encode(query)
-    return db_client.search(query_embedding, limit=3)
+    return db_client.search(query_embedding, limit=5)
 
 
 if __name__ == '__main__':
@@ -20,5 +20,9 @@ if __name__ == '__main__':
     results = search_papers(query)
 
     for i in results:
-        print(f"{i.score}, {i.article.title}")
+        print()
+        print(f"Score: {i.score}")
+        print(f"Title: {i.article.title}")
+        print(f"Abstract: {i.article.abstract}")
+
     print()
