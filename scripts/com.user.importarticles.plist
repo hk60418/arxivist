@@ -19,7 +19,7 @@
         <!-- Path to your Python script -->
         <key>ProgramArguments</key>
         <array>
-            <string>/Users/henrikynsilehto/Desktop/arxiv_agent/.venv/bin/python</string>
+            <string>/Users/henrikynsilehto/Desktop/arxiv_agent/.venv/.mlx_lm/bin/python</string>
             <string>/Users/henrikynsilehto/Desktop/arxiv_agent/scripts/import_articles_since_date.py</string>
         </array>
 

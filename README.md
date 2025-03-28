@@ -70,10 +70,10 @@ python scripts/import_articles_since_date.py 2023-12-01
 
 After the initial import you can set the script to run daily without arguments. This way it will check the database for 
 the last date that was imported and import all the articles published after that date. I am on Mac and I have plist 
-script/com.user.importarticles.plist for setting up the job via launchctl:
+script/com.user.importarticles.plist for setting up the job via launchctl like this:
 ```bash
 sudo cp scripts/com.user.importarticles.plist /Library/LaunchDaemons
-sudo sudo launchctl bootstrap system /Library/LaunchDaemons/com.user.importarticles.plist
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.user.importarticles.plist
 ```
 
 #### Running the UI
