@@ -1,3 +1,4 @@
+pdfminer.six
 qdrant_client
 PyYAML
 requests

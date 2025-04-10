@@ -1,7 +1,9 @@
 # Script to process papers published since given date
-import json
-import os.path
+# Insert project root into the python path.
 import sys
+import os.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+import json
 from datetime import datetime, timedelta, timezone
 from src.article_registry import ArticleRegistry
 from src.config.config_loader import ConfigurationLoader
